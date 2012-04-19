@@ -6,20 +6,13 @@ var program = require('commander');
 
 program
   .version('0.0.2')
-  .option('-i, --input <files>', 'List of input files.')
+  .usage('[options] <file ...>')
   .parse(process.argv);
 
-
-
-if (program.input) {
+if (program.args.length > 0) {
   // if input files option is set
-  console.log(program.input);
-  if (program.input instanceof Array) {
-    for (var i = 0; i<program.input.length; i++){
-      processFile(program.input[i]);
-    }
-  } else {
-    processFile(program.input);
+  for (var i = 0; i<program.args.length; i++){
+    processFile(program.args[i]);
   }
 } else {
   // getting current folder file list for user to choose from.
