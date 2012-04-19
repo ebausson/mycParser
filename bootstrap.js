@@ -2,68 +2,107 @@ var fs = require('fs')
 
 var libxmljs = require("libxmljs");
 
-var inputFileName = 'db.myc';
-if (process.argv.length >= 3){
-  inputFileName = process.argv[2];
-}
+var program = require('commander');
 
-// reading the file
+program
+  .version('0.0.2')
+  .option('-i, --input <files>', 'List of input files.')
+  .parse(process.argv);
 
-fs.readFile(inputFileName, 'utf8', function (err,rawData) {
-  if (err) {
-    return console.log(err);
+
+
+if (program.input) {
+  // if input files option is set
+  console.log(program.input);
+  if (program.input instanceof Array) {
+    for (var i = 0; i<program.input.length; i++){
+      processFile(program.input[i]);
+    }
+  } else {
+    processFile(program.input);
   }
-  var xmlDoc = libxmljs.parseXmlString(rawData);
-  var root = xmlDoc.root();
-  var children = root.childNodes();
-
-  for (var i = 0 ; i < children.length; i++) {
-    var child = children[i];
-    if (child.name() != 'text'){
-
-      var fileName = getAttributeValue(child, 'filename');
-      var titleKey = getAttributeValue(child, 'titleKey');
-
-      var title         = escapeString(getChildDesc(child, 'titre'));
-      var movieLink     = escapeString(getChildDesc(child, 'movieLink'));
-      var targetPublic  = escapeString(getChildDesc(child, 'publicType'));
-      var filmLength    = escapeString(getChildDesc(child, 'duree'));
-      var type          = escapeString(getChildDesc(child, 'genre'));
-      var realisator    = escapeString(getChildDesc(child, 'realisateur'));
-      var actors        = escapeString(getChildDesc(child, 'acteurs'));
-      var mediaScore    = escapeString(getChildDesc(child, 'notePresse'));
-      var specScore     = escapeString(getChildDesc(child, 'noteSpec'));
-      var synopsis      = escapeString(getChildDesc(child, 'synopsis'));
-      var affiche       = escapeString(getChildDesc(child, 'affiche'));
-      var originalTitle = escapeString(getChildDesc(child, 'titreOriginal'));
-      var releaseDate   = escapeString(getChildDesc(child, 'dateDeSortie'));
-
-
-      originalTitle = originalTitle != "-" ? originalTitle : "";
-      releaseDate   = convertDateFormat(releaseDate);
-
-
-      var request = 'INSERT INTO film(`nom_fichier`, `titre`, `allocine`, `titre_original`, `date_sortie`, `public`, `durée`, `genre`, `realisateur`, `acteur`, `note_presse`, `note_spectateur`, `synopsis`, `image`) VALUES (';
-      request += '"' + fileName + '", ';
-      request += '"' + title + '", ';
-      request += '"' + movieLink + '", ';
-      request += '"' + originalTitle + '", ';
-      request += '"' + releaseDate + '", ';
-      request += '"' + targetPublic + '", ';
-      request += '"' + filmLength + '", ';
-      request += '"' + type + '", ';
-      request += '"' + realisator + '", ';
-      request += '"' + actors + '", ';
-      request += '"' + mediaScore + '", ';
-      request += '"' + specScore + '", ';
-      request += '"' + synopsis + '", ';
-      request += '"' + affiche + '"';
-      request += ' );';
-
-      console.log(request);
+} else {
+  // getting current folder file list for user to choose from.
+  var list = new Array();
+  var folderContent = fs.readdirSync(".");
+  var j = 0;
+  for (var i = 0; i < folderContent.length; i++){
+    var file = fs.lstatSync(folderContent[i]);
+    if ( file.isFile()) {
+      list[j] = folderContent[i];
+      j++;
     }
   }
-});
+
+  // offering user to choose file
+  program.choose(fs.readdirSync("."), function(i){
+    processFile(list[i-1], true);
+  });
+
+}
+
+
+function processFile(fileName, exitOnClose){
+  // reading the file
+  fs.readFile(fileName, 'utf8', function (err,rawData) {
+    if (err) {
+      return console.log(err);
+    }
+    var xmlDoc = libxmljs.parseXmlString(rawData);
+    var root = xmlDoc.root();
+    var children = root.childNodes();
+
+    for (var i = 0 ; i < children.length; i++) {
+      var child = children[i];
+      if (child.name() != 'text'){
+
+        var fileName = getAttributeValue(child, 'filename');
+        var titleKey = getAttributeValue(child, 'titleKey');
+
+        var title         = escapeString(getChildDesc(child, 'titre'));
+        var movieLink     = escapeString(getChildDesc(child, 'movieLink'));
+        var targetPublic  = escapeString(getChildDesc(child, 'publicType'));
+        var filmLength    = escapeString(getChildDesc(child, 'duree'));
+        var type          = escapeString(getChildDesc(child, 'genre'));
+        var realisator    = escapeString(getChildDesc(child, 'realisateur'));
+        var actors        = escapeString(getChildDesc(child, 'acteurs'));
+        var mediaScore    = escapeString(getChildDesc(child, 'notePresse'));
+        var specScore     = escapeString(getChildDesc(child, 'noteSpec'));
+        var synopsis      = escapeString(getChildDesc(child, 'synopsis'));
+        var affiche       = escapeString(getChildDesc(child, 'affiche'));
+        var originalTitle = escapeString(getChildDesc(child, 'titreOriginal'));
+        var releaseDate   = escapeString(getChildDesc(child, 'dateDeSortie'));
+
+
+        originalTitle = originalTitle != "-" ? originalTitle : "";
+        releaseDate   = convertDateFormat(releaseDate);
+
+
+        var request = 'INSERT INTO film(`nom_fichier`, `titre`, `allocine`, `titre_original`, `date_sortie`, `public`, `durée`, `genre`, `realisateur`, `acteur`, `note_presse`, `note_spectateur`, `synopsis`, `image`) VALUES (';
+        request += '"' + fileName + '", ';
+        request += '"' + title + '", ';
+        request += '"' + movieLink + '", ';
+        request += '"' + originalTitle + '", ';
+        request += '"' + releaseDate + '", ';
+        request += '"' + targetPublic + '", ';
+        request += '"' + filmLength + '", ';
+        request += '"' + type + '", ';
+        request += '"' + realisator + '", ';
+        request += '"' + actors + '", ';
+        request += '"' + mediaScore + '", ';
+        request += '"' + specScore + '", ';
+        request += '"' + synopsis + '", ';
+        request += '"' + affiche + '"';
+        request += ' );';
+
+        console.log(request);
+      }
+    }
+
+    if (exitOnClose) process.exit();
+  });
+}
+
 
 
 
