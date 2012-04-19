@@ -24,19 +24,24 @@ fs.readFile(inputFileName, 'utf8', function (err,rawData) {
       var fileName = getAttributeValue(child, 'filename');
       var titleKey = getAttributeValue(child, 'titleKey');
 
-      var title         = getChildDesc(child, 'titre').replace("&quot;","").replace('"','\"');
-      var movieLink     = getChildDesc(child, 'movieLink').replace("&quot;","").replace('"','\"');
-      var originalTitle = getChildDesc(child, 'titreOriginal').replace("&quot;","").replace('"','\"');
-      var targetPublic  = getChildDesc(child, 'publicType').replace("&quot;","").replace('"','\"');
-      var filmLength    = getChildDesc(child, 'duree').replace("&quot;","").replace('"','\"');
-      var type          = getChildDesc(child, 'genre').replace("&quot;","").replace('"','\"');
-      var realisator    = getChildDesc(child, 'realisateur').replace("&quot;","").replace('"','\"');
-      var actors        = getChildDesc(child, 'acteurs').replace("&quot;","").replace('"','\"');
-      var mediaScore    = getChildDesc(child, 'notePresse').replace("&quot;","").replace('"','\"');
-      var specScore     = getChildDesc(child, 'noteSpec').replace("&quot;","").replace('"','\"');
-      var synopsis      = getChildDesc(child, 'synopsis').replace("&quot;","").replace('"','\"');
-      var affiche       = getChildDesc(child, 'affiche').replace("&quot;","").replace('"','\"');
-      var releaseDate   = convertDateFormat(getChildDesc(child, 'dateDeSortie'));
+      var title         = escapeString(getChildDesc(child, 'titre'));
+      var movieLink     = escapeString(getChildDesc(child, 'movieLink'));
+      var targetPublic  = escapeString(getChildDesc(child, 'publicType'));
+      var filmLength    = escapeString(getChildDesc(child, 'duree'));
+      var type          = escapeString(getChildDesc(child, 'genre'));
+      var realisator    = escapeString(getChildDesc(child, 'realisateur'));
+      var actors        = escapeString(getChildDesc(child, 'acteurs'));
+      var mediaScore    = escapeString(getChildDesc(child, 'notePresse'));
+      var specScore     = escapeString(getChildDesc(child, 'noteSpec'));
+      var synopsis      = escapeString(getChildDesc(child, 'synopsis'));
+      var affiche       = escapeString(getChildDesc(child, 'affiche'));
+      var originalTitle = escapeString(getChildDesc(child, 'titreOriginal'));
+      var releaseDate   = escapeString(getChildDesc(child, 'dateDeSortie'));
+
+
+      originalTitle = originalTitle != "-" ? originalTitle : "";
+      releaseDate   = convertDateFormat(releaseDate);
+
 
       var request = 'INSERT INTO film(`nom_fichier`, `titre`, `allocine`, `titre_original`, `date_sortie`, `public`, `durée`, `genre`, `realisateur`, `acteur`, `note_presse`, `note_spectateur`, `synopsis`, `image`) VALUES (';
       request += '"' + fileName + '", ';
@@ -75,6 +80,11 @@ function getChildDesc(element, childName, defaultValue){
   var description = childNode && childNode.attr('description');
   var value = description && description.value();
   return value ? value : defaultValue;
+}
+
+
+function escapeString(inputString) {
+  return inputString.split("&quot;").join("").split('"').join('\\"');
 }
 
 
