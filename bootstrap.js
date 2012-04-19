@@ -84,7 +84,7 @@ function getChildDesc(element, childName, defaultValue){
 
 
 function escapeString(inputString) {
-  return inputString.split("&quot;").join("").split('"').join('\\"');
+  return inputString ? inputString.split("&quot;").join("").split('"').join('\\"') : "";
 }
 
 
